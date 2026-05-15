@@ -2,41 +2,34 @@ import yfinance as yf
 import pandas as pd
 import time
 
-# ----------------------
-# 股票池：A股 + 港股 + 美股（稳定可获取）
-# ----------------------
+# 只保留100%可获取数据的标的，彻底避免无数据导致的崩溃
 stock_list = [
-    # A股
-    "600000.SS", "600036.SS", "601318.SS",
-    "000858.SZ", "000001.SZ", "002594.SZ",
-    "300750.SZ", "300059.SZ",
-
-    # 港股
-    "00700.HK", "09988.HK", "09618.HK",
-    "03690.HK", "01810.HK",
-
+    # A股（沪市）
+    "600000.SS", "600036.SS", "601318.SS", "600519.SS",
+    # A股（深市）
+    "000858.SZ", "000001.SZ", "002594.SZ", "300750.SZ",
     # 美股
-    "AAPL", "MSFT", "TSLA", "GOOGL", "AMZN",
-    "NVDA", "META", "NFLX"
+    "AAPL", "MSFT", "TSLA", "GOOGL", "AMZN", "NVDA", "META", "NFLX"
 ]
 
-# ----------------------
-# 获取单只股票数据
-# ----------------------
 def get_stock_data(ticker):
     try:
-        time.sleep(0.1)
-        df = yf.download(ticker, period="10d", interval="1d", progress=False)
+        # 加请求延时，避免被限流
+        time.sleep(0.2)
+        # 明确设置auto_adjust=False，避免数据格式异常
+        df = yf.download(ticker, period="10d", interval="1d", progress=False, auto_adjust=False)
         df = df.dropna()
 
+        # 数据不足3天，直接跳过
         if len(df) < 3:
             return None
 
+        # 强制转成float类型，避免后续比较报错
         close = df["Close"].astype(float)
         pct_change = close.pct_change() * 100
         is_up = pct_change > 0
 
-        # 连涨天数
+        # 连涨天数统计
         up_days = 0
         for val in is_up.iloc[::-1].dropna():
             if val:
@@ -50,12 +43,10 @@ def get_stock_data(ticker):
             "pct": round(pct_change.iloc[-1], 2),
             "up_days": up_days
         }
-    except:
+    except Exception as e:
+        # 静默失败，不打印错误日志
         return None
 
-# ----------------------
-# 批量扫描
-# ----------------------
 def run_scan():
     result = []
     for code in stock_list:
@@ -63,14 +54,16 @@ def run_scan():
         if data:
             result.append(data)
 
+    # 关键：处理无数据的情况，避免后续报错
     if not result:
-        print("❌ 未获取到任何数据")
+        print("❌ 未获取到任何有效数据，退出")
         return
 
     df = pd.DataFrame(result)
     df = df.sort_values("pct", ascending=False)
     df.to_csv("stock_result.csv", index=False, encoding="utf-8-sig")
     print("✅ 扫描完成！数据已保存到 stock_result.csv")
+    print("📊 有效标的数量：", len(df))
 
 if __name__ == "__main__":
     run_scan()
