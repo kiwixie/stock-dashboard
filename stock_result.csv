@@ -1,0 +1,31 @@
+﻿code,close,pct,up_days
+AAPL,"Ticker
+AAPL    298.21
+Name: 2026-05-14 00:00:00, dtype: float64",-0.22,0
+MSFT,"Ticker
+MSFT    409.43
+Name: 2026-05-14 00:00:00, dtype: float64",1.04,1
+TSLA,"Ticker
+TSLA    443.3
+Name: 2026-05-14 00:00:00, dtype: float64",-0.44,0
+GOOGL,"Ticker
+GOOGL    401.07
+Name: 2026-05-14 00:00:00, dtype: float64",-0.38,0
+AMZN,"Ticker
+AMZN    267.22
+Name: 2026-05-14 00:00:00, dtype: float64",-1.08,0
+0700.HK,"Ticker
+0700.HK    456.4
+Name: 2026-05-15 00:00:00, dtype: float64",0.33,1
+9988.HK,"Ticker
+9988.HK    132.3
+Name: 2026-05-15 00:00:00, dtype: float64",-4.06,0
+600519.SS,"Ticker
+600519.SS    1332.95
+Name: 2026-05-15 00:00:00, dtype: float64",-0.69,0
+000858.SZ,"Ticker
+000858.SZ    86.87
+Name: 2026-05-15 00:00:00, dtype: float64",-2.38,0
+300750.SZ,"Ticker
+300750.SZ    423.6
+Name: 2026-05-15 00:00:00, dtype: float64",-0.8,0
