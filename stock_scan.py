@@ -44,7 +44,7 @@ def get_stock_data(ticker):
             "up_days": up_days
         }
     except Exception as e:
-        # 静默失败，不打印错误日志
+        print(f"获取 {ticker} 失败: {e}")
         return None
 
 def run_scan():
@@ -60,6 +60,8 @@ def run_scan():
         return
 
     df = pd.DataFrame(result)
+    # 强制将pct列转为float，避免类型不一致导致排序报错
+    df["pct"] = df["pct"].astype(float)
     df = df.sort_values("pct", ascending=False)
     df.to_csv("stock_result.csv", index=False, encoding="utf-8-sig")
     print("✅ 扫描完成！数据已保存到 stock_result.csv")
