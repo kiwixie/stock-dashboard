@@ -1,7 +1,7 @@
 import yfinance as yf
 import pandas as pd
 
-# 股票池（自己随便加）
+# 股票池（可自行添加）
 stock_list = [
     "AAPL", "MSFT", "TSLA", "GOOGL", "AMZN",
     "0700.HK", "9988.HK",
@@ -14,7 +14,7 @@ def get_data(ticker):
         df["pct"] = df["Close"].pct_change() * 100
         df["is_up"] = df["pct"] > 0
 
-        # 连涨天数
+        # 连涨天数统计
         up_days = 0
         for v in df["is_up"].iloc[::-1]:
             if v:
@@ -28,13 +28,19 @@ def get_data(ticker):
             "pct": round(df["pct"].iloc[-1], 2),
             "up_days": up_days
         }
-    except:
+    except Exception as e:
+        print(f"获取 {ticker} 失败: {e}")
         return None
 
 def run():
-    data = [get_data(t) for t in stock_list if get_data(t)]
+    data = []
+    for t in stock_list:
+        res = get_data(t)
+        if res:
+            data.append(res)
     df = pd.DataFrame(data)
-    df.to_csv("/data/stock_result.csv", index=False, encoding="utf-8-sig")
+    # 关键：文件直接保存在当前目录
+    df.to_csv("stock_result.csv", index=False, encoding="utf-8-sig")
     print("✅ 完成：涨幅榜 + 连涨筛选")
 
 if __name__ == "__main__":
