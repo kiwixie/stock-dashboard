@@ -1,62 +1,45 @@
 import yfinance as yf
 import pandas as pd
-import akshare as ak
 import time
 
-# ---------------------- 1. 获取全市场代码 ----------------------
-def get_all_stocks():
-    codes = []
+# ----------------------
+# 股票池：A股 + 港股 + 美股（稳定可获取）
+# ----------------------
+stock_list = [
+    # A股
+    "600000.SS", "600036.SS", "601318.SS",
+    "000858.SZ", "000001.SZ", "002594.SZ",
+    "300750.SZ", "300059.SZ",
 
-    # -------- A股（沪深主板+创业板+科创板）----------
-    try:
-        a_df = ak.stock_zh_a_spot_em()
-        a_codes = a_df["代码"].astype(str).tolist()
-        # 补后缀
-        for c in a_codes:
-            if c.startswith(("60","688")):
-                codes.append(c + ".SS")
-            elif c.startswith(("00","30")):
-                codes.append(c + ".SZ")
-        print(f"✅ A股: {len(a_codes)}")
-    except Exception as e:
-        print("❌ A股获取失败", e)
+    # 港股
+    "00700.HK", "09988.HK", "09618.HK",
+    "03690.HK", "01810.HK",
 
-    # -------- 港股（0开头5位）----------
-    hk_codes = [f"{i:05d}.HK" for i in range(1, 10000) if i % 1000 == 0]
-    codes.extend(hk_codes)
-    print(f"✅ 港股（抽样）: {len(hk_codes)}")
+    # 美股
+    "AAPL", "MSFT", "TSLA", "GOOGL", "AMZN",
+    "NVDA", "META", "NFLX"
+]
 
-    # -------- 美股（用yfinance lookup）----------
-    try:
-        us_stocks = yf.Search("NASDAQ", count=2000).quotes
-        us_stocks2 = yf.Search("NYSE", count=2000).quotes
-        us_codes = [s["symbol"] for s in us_stocks + us_stocks2]
-        codes.extend(us_codes)
-        print(f"✅ 美股: {len(us_codes)}")
-    except Exception as e:
-        print("❌ 美股获取失败", e)
-
-    # 去重
-    codes = list(set(codes))
-    print(f"📊 全市场总数: {len(codes)}")
-    return codes
-
-# ---------------------- 2. 单只股票数据 ----------------------
+# ----------------------
+# 获取单只股票数据
+# ----------------------
 def get_stock_data(ticker):
     try:
+        time.sleep(0.1)
         df = yf.download(ticker, period="10d", interval="1d", progress=False)
         df = df.dropna()
+
         if len(df) < 3:
             return None
 
         close = df["Close"].astype(float)
-        pct = close.pct_change() * 100
-        is_up = pct > 0
+        pct_change = close.pct_change() * 100
+        is_up = pct_change > 0
 
         # 连涨天数
         up_days = 0
-        for v in is_up.iloc[::-1]:
-            if v:
+        for val in is_up.iloc[::-1].dropna():
+            if val:
                 up_days += 1
             else:
                 break
@@ -64,33 +47,30 @@ def get_stock_data(ticker):
         return {
             "code": ticker,
             "close": round(close.iloc[-1], 2),
-            "pct": round(pct.iloc[-1], 2),
+            "pct": round(pct_change.iloc[-1], 2),
             "up_days": up_days
         }
     except:
         return None
 
-# ---------------------- 3. 全盘扫描 ----------------------
-def run():
-    all_codes = get_all_stocks()
+# ----------------------
+# 批量扫描
+# ----------------------
+def run_scan():
     result = []
-
-    for idx, code in enumerate(all_codes):
+    for code in stock_list:
         data = get_stock_data(code)
         if data:
             result.append(data)
-        # 防风控
-        if idx % 500 == 0:
-            print(f"进度: {idx}/{len(all_codes)}")
-            time.sleep(5)
+
+    if not result:
+        print("❌ 未获取到任何数据")
+        return
 
     df = pd.DataFrame(result)
-    # 排序：涨幅从高到低
-    df = df.sort_values("pct", ascending=False).reset_index(drop=True)
+    df = df.sort_values("pct", ascending=False)
     df.to_csv("stock_result.csv", index=False, encoding="utf-8-sig")
-    print(f"🎉 完成！共有效股票: {len(df)}")
-    print("🔥 当日涨幅前10：")
-    print(df.head(10))
+    print("✅ 扫描完成！数据已保存到 stock_result.csv")
 
 if __name__ == "__main__":
-    run()
+    run_scan()
