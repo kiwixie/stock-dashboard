@@ -2,7 +2,8 @@ name: 每日股票扫描
 
 on:
   schedule:
-    - cron: "30 1 * * *"  # 每天北京时间 9:30 跑
+    - cron: "30 1 * * *"  # 对应北京时间 9:30，会自动按这个时间跑
+  workflow_dispatch:  # 手动触发按钮，测试用
 
 jobs:
   run:
@@ -22,5 +23,5 @@ jobs:
           git config --global user.name "auto"
           git config --global user.email "auto@github.com"
           git add stock_result.csv
-          git commit -m "auto update $(date)"
+          git commit -m "auto update $(date)" || echo "No changes to commit"
           git push
