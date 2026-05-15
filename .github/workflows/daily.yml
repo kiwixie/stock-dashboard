@@ -13,7 +13,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run scan
@@ -23,5 +23,5 @@ jobs:
           git config --global user.name "auto"
           git config --global user.email "auto@github.com"
           git add stock_result.csv
-          git commit -m "auto update $(date)" || echo "no change"
+          git commit -m "auto update $(date +%Y-%m-%d)" || echo "no change"
           git push
