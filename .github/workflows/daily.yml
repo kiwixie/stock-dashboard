@@ -1,27 +1,22 @@
-name: 每日股票扫描
-
+name: 全量A股扫描
 on:
-  schedule:
-    - cron: "30 1 * * *"
   workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * *"
 
 jobs:
   run:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Run scan
-        run: python stock_scan.py
-      - name: Commit result
-        run: |
-          git config --global user.name "auto"
-          git config --global user.email "auto@github.com"
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - run: python stock_scan.py
+      - run: |
+          git config --global user.name auto
+          git config --global user.email auto@github.com
           git add stock_result.csv
-          git commit -m "auto update $(date +%Y-%m-%d)" || echo "no change"
+          git commit -m "update" || echo "ok"
           git push
